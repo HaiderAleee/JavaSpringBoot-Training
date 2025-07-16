@@ -3,13 +3,17 @@ package com.redmath.newsproject.Controller;
 
 import com.redmath.newsproject.Model.news;
 import com.redmath.newsproject.Service.NewsService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
+
+@Slf4j
 @RestController
-@RequestMapping("/api/")
+@RequestMapping("/api")
 public class NewsController {
 
     NewsService newsService;
@@ -19,6 +23,7 @@ public class NewsController {
 
     //  Get All News
     @GetMapping("/news")
+    @ResponseStatus(HttpStatus.FOUND)
     public List<news> getAllNews() {
         return newsService.getallnews();
     }
@@ -26,11 +31,14 @@ public class NewsController {
     //   Get News by ID
     @GetMapping("/{id}")
     public news getNewsById(@PathVariable Long id) {
+        log.info("************************ControllerCalled****************************");
         return newsService.getNewsById(id);
+
     }
 
     //   Create News
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public news createNews(@RequestBody news newsItem) {
         return newsService.createNews(newsItem);
     }

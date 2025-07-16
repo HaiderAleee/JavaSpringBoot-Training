@@ -3,12 +3,12 @@ package com.redmath.newsproject.Service;
 
 import com.redmath.newsproject.Model.news;
 import com.redmath.newsproject.Repository.NewsRepository;
+import exceptionsfolder.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import com.redmath.newsproject.Model.news;
 import java.time.LocalDate;
 import java.util.List;
-
 @Slf4j
 @Service
 public class NewsService {
@@ -31,8 +31,10 @@ public class NewsService {
     }
 
     public news getNewsById(Long id) {
-        return repository.findById(id).orElse(null);
+        return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("News not found with ID: " + id));
     }
+
 
     public news createNews(news newsItem) {
         return repository.save(newsItem);
