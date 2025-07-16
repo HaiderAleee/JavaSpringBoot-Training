@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2
+      author: haiderali
+      changes:
+        - insert:
+            tableName: news
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: title
+                  value: "Spring Boot Released"
+              - column:
+                  name: content
+                  value: "Spring Boot 3.0 is out now."
+              - column:
+                  name: author
+                  value: "Haider Ali"
+              - column:
+                  name: category
+                  value: "Technology"
+              - column:
+                  name: publishedat
+                  valueDate: "2025-07-15"
+              - column:
+                  name: ispublished
+                  valueBoolean: true
+
+  - changeSet:
+      id: 3
+      author: haiderali
+      changes:
+        - insert:
+            tableName: news
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 2
+              - column:
+                  name: title
+                  value: "AI Advancements"
+              - column:
+                  name: content
+                  value: "OpenAI releases new models."
+              - column:
+                  name: author
+                  value: "Admin"
+              - column:
+                  name: category
+                  value: "AI"
+              - column:
+                  name: publishedat
+                  valueDate: "2025-07-10"
+              - column:
+                  name: ispublished
+                  valueBoolean: true

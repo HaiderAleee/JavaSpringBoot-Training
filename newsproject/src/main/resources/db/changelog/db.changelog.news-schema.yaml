@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: haiderali
+      changes:
+        - createTable:
+            tableName: news
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+              - column:
+                  name: content
+                  type: TEXT
+              - column:
+                  name: author
+                  type: VARCHAR(100)
+              - column:
+                  name: category
+                  type: VARCHAR(100)
+              - column:
+                  name: publishedat
+                  type: DATE
+              - column:
+                  name: ispublished
+                  type: BOOLEAN
