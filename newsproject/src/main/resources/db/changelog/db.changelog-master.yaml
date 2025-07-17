@@ -3,3 +3,7 @@ databaseChangeLog:
       file: db/changelog/db.changelog.news-schema.yaml
   - include:
       file: db/changelog/db.changelog.news-data.yaml
+  - include:
+      file: db/changelog/db.changelog.user-schema.yaml
+  - include:
+      file: db/changelog/db.changelog.user-data.yaml
