@@ -18,5 +18,5 @@ public class User {
 
     private String password;
 
-    private String role; // Now just one role per user
+    private String role;
 }

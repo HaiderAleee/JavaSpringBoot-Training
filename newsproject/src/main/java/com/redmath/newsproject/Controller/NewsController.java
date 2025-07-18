@@ -13,7 +13,6 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api")
 public class NewsController {
 
     NewsService newsService;
@@ -31,7 +30,6 @@ public class NewsController {
     //   Get News by ID
     @GetMapping("/{id}")
     public news getNewsById(@PathVariable Long id) {
-        log.info("************************ControllerCalled****************************");
         return newsService.getNewsById(id);
 
     }

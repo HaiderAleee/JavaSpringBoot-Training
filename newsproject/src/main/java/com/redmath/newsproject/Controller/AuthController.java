@@ -1,4 +1,4 @@
-package com.redmath.newsproject.Auth;
+package com.redmath.newsproject.Controller;
 
 import com.redmath.newsproject.Model.User;
 import com.redmath.newsproject.Repository.UserRepository;
@@ -19,7 +19,7 @@ public class AuthController {
     @PostMapping("/register")
     public String register(@RequestBody User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole("ROLE_USER");
+        user.setRole("USER");
         userRepo.save(user);
         return "User registered successfully!";
     }
