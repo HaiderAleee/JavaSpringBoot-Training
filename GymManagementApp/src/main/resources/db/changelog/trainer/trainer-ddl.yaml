@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1-trainer-create-table
+      author: haider
+      changes:
+        - createTable:
+            tableName: trainer
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: username
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: phone_number
+                  type: VARCHAR(100)
+              - column:
+                  name: specialty
+                  type: VARCHAR(255)
+              - column:
+                  name: salary
+                  type: DECIMAL(10,2)
+              - column:
+                  name: role
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false

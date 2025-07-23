@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2-trainer-insert-sample
+      author: haider
+      changes:
+        - insert:
+            tableName: trainer
+            columns:
+              - column:
+                  name: username
+                  value: trainer1
+              - column:
+                  name: password
+                  value: '$2a$12$a5.OcxarVv92jN1aXlM/LOXFvMa6T.mMD7XKEjm/EsIko.t/UNYOa'
+              - column:
+                  name: phone_number
+                  value: '0987654321'
+              - column:
+                  name: specialty
+                  value: Strength Training
+              - column:
+                  name: salary
+                  valueNumeric: 40000.00
+              - column:
+                  name: role
+                  value: TRAINER

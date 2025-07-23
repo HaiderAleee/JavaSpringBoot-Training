@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2-admin-insert-sample
+      author: haider
+      changes:
+        - insert:
+            tableName: admin
+            columns:
+              - column:
+                  name: username
+                  value: admin
+              - column:
+                  name: password
+                  value: '$2a$12$XbUMFyT9vVL1ZUT2QogxhOj5tUupBWjJEjqLyVbsZtXRcZJnY7H9y'
+              - column:
+                  name: role
+                  value: ADMIN

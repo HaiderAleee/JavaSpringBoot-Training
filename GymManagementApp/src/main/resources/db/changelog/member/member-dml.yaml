@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2-member-insert-sample
+      author: haider
+      changes:
+        - insert:
+            tableName: member
+            columns:
+              - column:
+                  name: phone_number
+                  value: '1234567890'
+              - column:
+                  name: gender
+                  value: 'Male'
+              - column:
+                  name: membership_type
+                  value: 'Basic'
+              - column:
+                  name: join_date
+                  valueDate: "2023-01-01"
+              - column:
+                  name: username
+                  value: 'member1'
+              - column:
+                  name: password
+                  value: '$2a$12$gxjGdYYMdfNHMqoQAa45uuaHQbnSmjDrMJnQVVotOxGcmDugoH2.a'
+              - column:
+                  name: role
+                  value: 'MEMBER'

@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/admin/admin-ddl.yaml
+  - include:
+      file: db/changelog/admin/admin-dml.yaml
+  - include:
+      file: db/changelog/member/member-ddl.yaml
+  - include:
+      file: db/changelog/member/member-dml.yaml
+  - include:
+      file: db/changelog/trainer/trainer-ddl.yaml
+  - include:
+      file: db/changelog/trainer/trainer-dml.yaml
