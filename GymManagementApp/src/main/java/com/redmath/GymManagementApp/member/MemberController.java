@@ -1,6 +1,6 @@
 package com.redmath.GymManagementApp.member;
 
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,9 +46,10 @@ public class MemberController {
 
     @GetMapping("/me")
     public Member getMyProfile(Authentication authentication) {
-        String username = authentication.name();
+        String username = authentication.getName();
         return memberService.getMemberByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Member not found"));
     }
+
 
 }

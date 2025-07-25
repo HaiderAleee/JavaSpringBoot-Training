@@ -27,3 +27,6 @@ databaseChangeLog:
               - column:
                   name: role
                   value: 'MEMBER'
+              - column:
+                  name: trainerid
+                  valueNumeric: 1  # or the appropriate trainer ID you want to assign
