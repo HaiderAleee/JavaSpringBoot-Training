@@ -1,5 +1,6 @@
 package com.redmath.GymManagementApp.member;
 
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,4 +38,17 @@ public class MemberController {
     public void deleteMember(@PathVariable Long id) {
         memberService.deleteMember(id);
     }
+
+    @GetMapping("/by-trainer/{trainerId}")
+    public List<Member> getMembersByTrainerId(@PathVariable Long trainerId) {
+        return memberService.getMembersByTrainerId(trainerId);
+    }
+
+    @GetMapping("/me")
+    public Member getMyProfile(Authentication authentication) {
+        String username = authentication.name();
+        return memberService.getMemberByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Member not found"));
+    }
+
 }
