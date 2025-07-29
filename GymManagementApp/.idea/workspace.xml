@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="dd0f9902-9d05-4196-a879-440a50ac1f80" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/GymManagementAppApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/admin/Admin.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/admin/AdminController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/admin/AdminRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/admin/AdminService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/config/CustomUserDetailsService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/config/SecurityConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/member/Member.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/member/MemberController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/member/MemberRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/member/MemberService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/trainer/Trainer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/trainer/TrainerController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/trainer/TrainerRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/redmath/GymManagementApp/trainer/TrainerService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/Member.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/db/changelog/admin/admin-ddl.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/db/changelog/admin/admin-dml.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/db/changelog/db.changelog-master.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/db/changelog/member/member-ddl.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/db/changelog/member/member-dml.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/db/changelog/trainer/trainer-ddl.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/db/changelog/trainer/trainer-dml.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/redmath/GymManagementApp/GymManagementAppApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/redmath/GymManagementApp/admin/AdminControllerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/redmath/GymManagementApp/member/MemberControllerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/com/redmath/GymManagementApp/trainer/TrainerControllerTest.java" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JUnit5 Test Class" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;HaiderAleee&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/HaiderAleee/JavaSpringBoot-Training.git&quot;,
+    &quot;accountId&quot;: &quot;b1fd8e37-a01e-4f89-bc1f-6343db2113ce&quot;
+  }
+}</component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="30DnpObfbLVLkcK4kktQNj48D7k" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.GymManagementAppApplication.executor": "Run",
+    "JUnit.AdminControllerMockMvcTest.executor": "Run",
+    "JUnit.AdminControllerMockMvcTest.updateAdmin_ExistingId_ReturnsUpdatedAdmin.executor": "Debug",
+    "JUnit.AdminControllerTest.executor": "Run",
+    "JUnit.MemberControllerMockMvcTest.executor": "Run",
+    "JUnit.MemberControllerTest.executor": "Run",
+    "JUnit.SecurityConfigTest.executor": "Run",
+    "JUnit.TrainerControllerMockMvcTest.executor": "Run",
+    "JUnit.TrainerControllerTest.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
+    "git-widget-placeholder": "main"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\RedMath Training\GymManagementApp\src\main\resources\db\changelog" />
+      <recent name="D:\RedMath Training\GymManagementApp\src\main\java\com\redmath\GymManagementApp\config" />
+    </key>
+    <key name="CreateTestDialog.Recents.Supers">
+      <recent name="" />
+    </key>
+    <key name="CreateTestDialog.RecentsKey">
+      <recent name="com.redmath.GymManagementApp.member" />
+      <recent name="com.redmath.GymManagementApp.admin" />
+      <recent name="com.redmath.GymManagementApp.trainer" />
+      <recent name="com.redmath.GymManagementApp.config" />
+    </key>
+  </component>
+  <component name="RunManager" selected="JUnit.MemberControllerTest">
+    <configuration name="AdminControllerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="GymManagementApp" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.redmath.GymManagementApp.admin.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.redmath.GymManagementApp.admin" />
+      <option name="MAIN_CLASS_NAME" value="com.redmath.GymManagementApp.admin.AdminControllerTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MemberControllerMockMvcTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="GymManagementApp" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.redmath.GymManagementApp.member.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.redmath.GymManagementApp.member" />
+      <option name="MAIN_CLASS_NAME" value="com.redmath.GymManagementApp.member.MemberControllerMockMvcTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MemberControllerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="GymManagementApp" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.redmath.GymManagementApp.member.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.redmath.GymManagementApp.member" />
+      <option name="MAIN_CLASS_NAME" value="com.redmath.GymManagementApp.member.MemberControllerTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TrainerControllerMockMvcTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="GymManagementApp" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.redmath.GymManagementApp.trainer.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.redmath.GymManagementApp.trainer" />
+      <option name="MAIN_CLASS_NAME" value="com.redmath.GymManagementApp.trainer.TrainerControllerMockMvcTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TrainerControllerTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="GymManagementApp" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.redmath.GymManagementApp.trainer.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.redmath.GymManagementApp.trainer" />
+      <option name="MAIN_CLASS_NAME" value="com.redmath.GymManagementApp.trainer.TrainerControllerTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.MemberControllerTest" />
+        <item itemvalue="JUnit.TrainerControllerTest" />
+        <item itemvalue="JUnit.AdminControllerTest" />
+        <item itemvalue="JUnit.TrainerControllerMockMvcTest" />
+        <item itemvalue="JUnit.MemberControllerMockMvcTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="dd0f9902-9d05-4196-a879-440a50ac1f80" name="Changes" comment="" />
+      <created>1753171197265</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1753171197265</updated>
+    </task>
+    <servers />
+  </component>
+</project>

@@ -23,9 +23,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -39,6 +43,13 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtEncoder jwtEncoder) throws Exception {
+        // Configure CORS
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+
+        // Configure CSRF
+        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+        requestHandler.setCsrfRequestAttributeName(null);
+
         http
                 .formLogin(config -> config.successHandler((request, response, auth) -> {
                     long expirySeconds = 3600;
@@ -71,14 +82,15 @@ public class SecurityConfig {
                 .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/error", "/swagger-ui/**", "/v3/api-docs/**", "/login","/actuator/**").permitAll()
+                        .requestMatchers("/error", "/swagger-ui/**", "/v3/api-docs/**", "/login", "/actuator/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow preflight requests
                         .requestMatchers(HttpMethod.GET, "/api/v1/news/**").permitAll()
 
                         // Member access
                         .requestMatchers(HttpMethod.GET, "/trainers").hasAnyRole("MEMBER", "TRAINER")
+                        .requestMatchers(HttpMethod.GET, "/members/me").hasAnyRole("MEMBER")
                         .requestMatchers(HttpMethod.GET, "/trainers/{id}").hasRole("TRAINER")
-
 
                         // Trainer limited access
                         .requestMatchers(HttpMethod.GET, "/members").hasRole("TRAINER")
@@ -90,11 +102,25 @@ public class SecurityConfig {
                 )
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .csrfTokenRequestHandler(requestHandler)
                         .ignoringRequestMatchers("/login", "/h2-console/**")
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000")); // Your React app URL
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean
