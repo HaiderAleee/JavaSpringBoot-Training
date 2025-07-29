@@ -1,7 +1,6 @@
 package com.redmath.SprigSecurity.Google;
 
-import com.redmath.SprigSecurity.Google.User;
-import com.redmath.SprigSecurity.Google.UserRepository;
+import com.redmath.SprigSecurity.Google.User_Table;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,19 +15,19 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User createUser(User user) {
+    public User_Table createUser(User_Table user) {
         return userRepository.save(user);
     }
 
-    public List<User> getAllUsers() {
+    public List<User_Table> getAllUsers() {
         return userRepository.findAll();
     }
 
-    public Optional<User> getUserById(Long id) {
+    public Optional<User_Table> getUserById(Long id) {
         return userRepository.findById(id);
     }
 
-    public Optional<User> getUserByEmail(String email) {
+    public Optional<User_Table> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 

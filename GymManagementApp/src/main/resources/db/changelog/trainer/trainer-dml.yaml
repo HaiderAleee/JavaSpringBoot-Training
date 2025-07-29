@@ -11,7 +11,7 @@ databaseChangeLog:
                   value: trainer1
               - column:
                   name: password
-                  value: '$2a$12$a5.OcxarVv92jN1aXlM/LOXFvMa6T.mMD7XKEjm/EsIko.t/UNYOa'
+                  value: '$2a$12$VySF0eTFX7x8IVogowpeLepgRkaQXbdke4hPtK5CYn.RxXy.LPPsG'
               - column:
                   name: phone_number
                   value: '0987654321'
