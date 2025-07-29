@@ -1,6 +1,7 @@
 package com.redmath.GymManagementApp.trainer;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,8 +20,10 @@ public class TrainerController {
     }
 
     @GetMapping("/{id}")
-    public Optional<Trainer> getTrainerById(@PathVariable Long id) {
-        return trainerService.getTrainerById(id);
+    public ResponseEntity<Trainer> getTrainerById(@PathVariable Long id) {
+        Optional<Trainer> trainer = trainerService.getTrainerById(id);
+        return trainer.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
