@@ -26,11 +26,12 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+
+
 
 @Configuration
 @EnableMethodSecurity
@@ -46,14 +47,10 @@ public class SecurityConfig {
         // Configure CORS
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
-        // Configure CSRF
-        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
-        requestHandler.setCsrfRequestAttributeName(null);
 
         http
                 .formLogin(config -> config.successHandler((request, response, auth) -> {
                     long expirySeconds = 3600;
-
                     var jwsHeader = JwsHeader.with(MacAlgorithm.HS256).build();
                     var authority = auth.getAuthorities().stream().findFirst()
                             .orElseThrow(() -> new RuntimeException("No authority found"))
@@ -71,6 +68,9 @@ public class SecurityConfig {
                     response.setContentType("application/json");
                     response.getWriter().print(tokenJson);
                 }))
+
+                .csrf(csrf -> csrf.disable())
+
                 .oauth2ResourceServer(config -> config.jwt(jwtConfig -> jwtConfig.jwtAuthenticationConverter(jwt -> {
                     String role = jwt.getClaimAsString("role");
                     if (role == null || role.isBlank()) {
@@ -82,28 +82,26 @@ public class SecurityConfig {
                 .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .authorizeHttpRequests(auth -> auth
+                        // Public access
                         .requestMatchers("/error", "/swagger-ui/**", "/v3/api-docs/**", "/login", "/actuator/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow preflight requests
                         .requestMatchers(HttpMethod.GET, "/api/v1/news/**").permitAll()
 
-                        // Member access
-                        .requestMatchers(HttpMethod.GET, "/trainers").hasAnyRole("MEMBER", "TRAINER")
-                        .requestMatchers(HttpMethod.GET, "/members/me").hasAnyRole("MEMBER")
-                        .requestMatchers(HttpMethod.GET, "/trainers/{id}").hasRole("TRAINER")
+                        // Member & Admin access
+                        .requestMatchers(HttpMethod.GET, "/trainers").hasAnyRole("MEMBER", "TRAINER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/members/me").hasAnyRole("MEMBER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/trainers/{id}").hasAnyRole("TRAINER", "ADMIN")
 
-                        // Trainer limited access
-                        .requestMatchers(HttpMethod.GET, "/members").hasRole("TRAINER")
-                        .requestMatchers(HttpMethod.GET, "/members/by-trainer/**").hasRole("TRAINER")
+                        // Trainer & Admin access
+                        .requestMatchers(HttpMethod.GET, "/members").hasAnyRole("TRAINER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/members/by-trainer/**").hasAnyRole("TRAINER", "ADMIN")
 
-                        // Admin full access
+                        // Admin full access (fallback)
                         .requestMatchers("/**").hasRole("ADMIN")
+
+                        // Authenticated for any other requests
                         .anyRequest().authenticated()
-                )
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(requestHandler)
-                        .ignoringRequestMatchers("/login", "/h2-console/**")
                 );
 
         return http.build();
