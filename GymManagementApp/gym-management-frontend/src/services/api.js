@@ -38,6 +38,8 @@ class ApiService {
       const response = await fetch(url, config)
 
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`API Error: ${response.status} - ${errorText}`)
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
@@ -73,10 +75,46 @@ class ApiService {
     return data
   }
 
+  // Google OAuth login
+  async googleLogin() {
+    // Redirect to Google OAuth endpoint
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/google`
+  }
+
+  // Complete profile for new Google users
+  async completeProfile(profileData) {
+    try {
+      // First, try the dedicated complete-profile endpoint
+      return await this.request("/members/complete-profile", {
+        method: "POST",
+        body: JSON.stringify(profileData),
+      })
+    } catch (error) {
+      console.log("Complete profile endpoint not found, trying to update current user profile...")
+
+      // Fallback: Get current user profile and update it
+      try {
+        const currentProfile = await this.getMyProfile()
+
+        // Update the member with the new profile data
+        const updateData = {
+          ...currentProfile,
+          phoneNumber: profileData.phoneNumber,
+          gender: profileData.gender,
+          trainerid: profileData.trainerId || profileData.trainerid || 0,
+        }
+
+        return await this.updateMember(currentProfile.id, updateData)
+      } catch (fallbackError) {
+        console.error("Fallback profile update failed:", fallbackError)
+        throw fallbackError
+      }
+    }
+  }
+
   // Admin endpoints
   async getAllAdmins() {
-    const data = await this.request("/admins")
-    return data
+    return this.request("/admins")
   }
 
   async getAdminById(id) {
@@ -99,13 +137,13 @@ class ApiService {
 
   async deleteAdmin(id) {
     return this.request(`/admins/${id}`, {
-      method: "DELETE" })
+      method: "DELETE",
+    })
   }
 
   // Trainer endpoints
   async getAllTrainers() {
-    const data = await this.request("/trainers")
-    return data
+    return this.request("/trainers")
   }
 
   async getTrainerById(id) {
@@ -128,13 +166,23 @@ class ApiService {
 
   async deleteTrainer(id) {
     return this.request(`/trainers/${id}`, {
-      method: "DELETE" })
+      method: "DELETE",
+    })
+  }
+
+  // Check if trainer exists
+  async trainerExists(trainerId) {
+    try {
+      await this.getTrainerById(trainerId)
+      return true
+    } catch (error) {
+      return false
+    }
   }
 
   // Member endpoints
   async getAllMembers() {
-    const data = await this.request("/members")
-    return data
+    return this.request("/members")
   }
 
   async getMemberById(id) {
@@ -157,7 +205,8 @@ class ApiService {
 
   async deleteMember(id) {
     return this.request(`/members/${id}`, {
-      method: "DELETE" })
+      method: "DELETE",
+    })
   }
 
   async getMembersByTrainerId(trainerId) {
@@ -170,6 +219,7 @@ class ApiService {
 
   // Get current user profile (works for any role)
   async getCurrentUserProfile() {
+    // Try to get profile based on role
     const token = this.token
     if (!token) throw new Error("No token available")
 
@@ -179,9 +229,11 @@ class ApiService {
     if (role === "ROLE_MEMBER") {
       return this.request("/members/me")
     } else if (role === "ROLE_TRAINER") {
+      // For trainers, we'll need to find them by username
       const trainers = await this.getAllTrainers()
       return trainers.find((t) => t.username === payload.sub)
     } else if (role === "ROLE_ADMIN") {
+      // For admins, we'll need to find them by username
       const admins = await this.getAllAdmins()
       return admins.find((a) => a.username === payload.sub)
     }

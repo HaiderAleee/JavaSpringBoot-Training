@@ -6,10 +6,11 @@ import Login from "./components/Login"
 import AdminPanel from "./components/AdminPanel"
 import TrainerDashboard from "./components/TrainerDashboard"
 import MemberDashboard from "./components/MemberDashboard"
+import ProfileCompletion from "./components/ProfileCompletion"
 import "./App.css"
 
 function AppContent() {
-  const { isAuthenticated, loading, isAdmin, isTrainer, isMember } = useAuth()
+  const { isAuthenticated, loading, isAdmin, isTrainer, isMember, needsProfileCompletion } = useAuth()
   const [activeSection, setActiveSection] = useState("dashboard")
 
   if (loading) {
@@ -23,6 +24,11 @@ function AppContent() {
 
   if (!isAuthenticated) {
     return <Login />
+  }
+
+  // Show profile completion for new Google users
+  if (needsProfileCompletion) {
+    return <ProfileCompletion />
   }
 
   const renderDashboard = () => {

@@ -24,4 +24,12 @@ public class Member {
     private LocalDate joinDate;
     private String role = "MEMBER";
 
+    @Transient
+    public boolean isProfileComplete() {
+        return phoneNumber != null && !phoneNumber.isEmpty()
+                && trainerid != null
+                // Add other required fields here
+                ;
+    }
+
 }

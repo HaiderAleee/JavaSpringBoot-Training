@@ -58,4 +58,8 @@ public class MemberService {
     public Optional<Member> getMemberByUsername(String username) {
         return memberRepo.findByUsername(username);
     }
+
+    public boolean trainerExists(Long trainerId) {
+        return memberRepo.existsByTrainerid(trainerId);
+    }
 }
