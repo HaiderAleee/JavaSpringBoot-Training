@@ -20,14 +20,6 @@ public class MemberProfileCompletionDTO {
         this.phoneNumber = phoneNumber;
     }
 
-    public Long getTrainerId() {
-        return trainerId;
-    }
-
-    public void setTrainerId(Long trainerId) {
-        this.trainerId = trainerId;
-    }
-
     public String getGender() {
         return gender;
     }

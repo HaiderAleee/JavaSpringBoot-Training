@@ -1,0 +1,13 @@
+<settings>
+    <profiles>
+        <profile>
+            <id>dependency-check</id>
+            <properties>
+                <nvd.api.key>YOUR_API_KEY_HERE</nvd.api.key>
+            </properties>
+        </profile>
+    </profiles>
+    <activeProfiles>
+        <activeProfile>dependency-check</activeProfile>
+    </activeProfiles>
+</settings>
