@@ -27,9 +27,9 @@ public class AdminService {
     }
 
     public Admin createAdmin(Admin admin) {
-        admin.setRole("ADMIN");  // force role
+        admin.setRole("ADMIN");
         String rawPassword = admin.getPassword();
-        admin.setPassword(passwordEncoder.encode(rawPassword));  // encrypt password
+        admin.setPassword(passwordEncoder.encode(rawPassword));
         return adminRepo.save(admin);
     }
 

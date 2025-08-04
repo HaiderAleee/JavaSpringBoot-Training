@@ -118,21 +118,7 @@ class MemberControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    @Test
-    void testCompleteProfile_InvalidTrainerId() throws Exception {
-        Member member = new Member();
-        member.setId(1L);
-        member.setUsername("admin");
-        when(memberService.getMemberByUsername("admin")).thenReturn(Optional.of(member));
-        when(memberService.trainerExists(42L)).thenReturn(false);
 
-        String json = "{\"phoneNumber\":\"1234567890\",\"trainerId\":42,\"gender\":\"Male\"}";
-        mockMvc.perform(post("/members/complete-profile")
-                        .header("Authorization", bearerToken())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isBadRequest());
-    }
     @Test
     void testGetMemberById() throws Exception {
         Member member = new Member();

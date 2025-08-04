@@ -70,12 +70,12 @@ public class MemberController {
         Member member = memberService.getMemberByUsername(jwt.getSubject())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        if (profileData.getTrainerId() != null && !memberService.trainerExists(profileData.getTrainerId())) {
+        if (profileData.getTrainerid() != null && !memberService.trainerExists(profileData.getTrainerid())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid trainer ID");
         }
 
         member.setPhoneNumber(profileData.getPhoneNumber());
-        member.setTrainerid(profileData.getTrainerId());
+        member.setTrainerid(profileData.getTrainerid());
         member.setGender(profileData.getGender());
 
         return ResponseEntity.ok(memberService.updateMember(member.getId(), member));

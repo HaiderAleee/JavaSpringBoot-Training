@@ -27,9 +27,7 @@ public class Member {
     @Transient
     public boolean isProfileComplete() {
         return phoneNumber != null && !phoneNumber.isEmpty()
-                && trainerid != null
-                // Add other required fields here
-                ;
+                && trainerid != null;
     }
 
 }

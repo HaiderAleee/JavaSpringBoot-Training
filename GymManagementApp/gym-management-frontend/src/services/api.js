@@ -3,6 +3,7 @@ const API_BASE_URL = "http://localhost:8080"
 class ApiService {
   constructor() {
     this.token = localStorage.getItem("token")
+    this.csrfToken = null
   }
 
   setToken(token) {
@@ -15,6 +16,44 @@ class ApiService {
     localStorage.removeItem("token")
   }
 
+  // Get CSRF token from login page HTML
+  async getCsrfTokenFromLoginPage() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: "GET",
+        credentials: "include",
+      })
+
+      if (response.ok) {
+        const html = await response.text()
+        
+        // Extract CSRF token from meta tag
+        const metaMatch = html.match(/<meta name="_csrf" content="([^"]+)"/);
+        if (metaMatch) {
+          this.csrfToken = metaMatch[1]
+          return metaMatch[1]
+        }
+
+        const inputMatch = html.match(/<input[^>]*name="_csrf"[^>]*value="([^"]+)"/);
+        if (inputMatch) {
+          this.csrfToken = inputMatch[1]
+          return inputMatch[1]
+        }
+
+        const jsMatch = html.match(/var csrfToken = "([^"]+)"/);
+        if (jsMatch) {
+          this.csrfToken = jsMatch[1]
+          return jsMatch[1]
+        }
+
+        console.warn("CSRF token not found in login page HTML")
+      }
+    } catch (error) {
+      console.error("Failed to get CSRF token from login page:", error)
+    }
+    return null
+  }
+
   getHeaders() {
     const headers = {
       "Content-Type": "application/json",
@@ -24,6 +63,10 @@ class ApiService {
       headers.Authorization = `Bearer ${this.token}`
     }
 
+    if (this.csrfToken) {
+      headers["X-XSRF-TOKEN"] = this.csrfToken
+    }
+
     return headers
   }
 
@@ -31,6 +74,7 @@ class ApiService {
     const url = `${API_BASE_URL}${endpoint}`
     const config = {
       headers: this.getHeaders(),
+      credentials: "include", 
       ...options,
     }
 
@@ -55,15 +99,27 @@ class ApiService {
     }
   }
 
-  // Authentication
   async login(username, password) {
+    await this.getCsrfTokenFromLoginPage()
+
     const formData = new FormData()
     formData.append("username", username)
     formData.append("password", password)
 
+    if (this.csrfToken) {
+      formData.append("_csrf", this.csrfToken)
+    }
+
+    const headers = {}
+    if (this.csrfToken) {
+      headers["X-XSRF-TOKEN"] = this.csrfToken
+    }
+
     const response = await fetch(`${API_BASE_URL}/login`, {
       method: "POST",
       body: formData,
+      credentials: "include",
+      headers: headers,
     })
 
     if (!response.ok) {
@@ -75,16 +131,16 @@ class ApiService {
     return data
   }
 
-  // Google OAuth login
   async googleLogin() {
-    // Redirect to Google OAuth endpoint
     window.location.href = `${API_BASE_URL}/oauth2/authorization/google`
   }
 
-  // Complete profile for new Google users
   async completeProfile(profileData) {
     try {
-      // First, try the dedicated complete-profile endpoint
+      if (!this.csrfToken) {
+        await this.getCsrfTokenFromLoginPage()
+      }
+
       return await this.request("/members/complete-profile", {
         method: "POST",
         body: JSON.stringify(profileData),
@@ -92,11 +148,9 @@ class ApiService {
     } catch (error) {
       console.log("Complete profile endpoint not found, trying to update current user profile...")
 
-      // Fallback: Get current user profile and update it
       try {
         const currentProfile = await this.getMyProfile()
 
-        // Update the member with the new profile data
         const updateData = {
           ...currentProfile,
           phoneNumber: profileData.phoneNumber,
@@ -112,16 +166,25 @@ class ApiService {
     }
   }
 
+  async ensureCsrfToken() {
+    if (!this.csrfToken) {
+      await this.getCsrfTokenFromLoginPage()
+    }
+  }
+
   // Admin endpoints
   async getAllAdmins() {
+    await this.ensureCsrfToken()
     return this.request("/admins")
   }
 
   async getAdminById(id) {
+    await this.ensureCsrfToken()
     return this.request(`/admins/${id}`)
   }
 
   async createAdmin(admin) {
+    await this.ensureCsrfToken()
     return this.request("/admins", {
       method: "POST",
       body: JSON.stringify(admin),
@@ -129,6 +192,7 @@ class ApiService {
   }
 
   async updateAdmin(id, admin) {
+    await this.ensureCsrfToken()
     return this.request(`/admins/${id}`, {
       method: "PUT",
       body: JSON.stringify(admin),
@@ -136,6 +200,7 @@ class ApiService {
   }
 
   async deleteAdmin(id) {
+    await this.ensureCsrfToken()
     return this.request(`/admins/${id}`, {
       method: "DELETE",
     })
@@ -143,14 +208,17 @@ class ApiService {
 
   // Trainer endpoints
   async getAllTrainers() {
+    await this.ensureCsrfToken()
     return this.request("/trainers")
   }
 
   async getTrainerById(id) {
+    await this.ensureCsrfToken()
     return this.request(`/trainers/${id}`)
   }
 
   async createTrainer(trainer) {
+    await this.ensureCsrfToken()
     return this.request("/trainers", {
       method: "POST",
       body: JSON.stringify(trainer),
@@ -158,6 +226,7 @@ class ApiService {
   }
 
   async updateTrainer(id, trainer) {
+    await this.ensureCsrfToken()
     return this.request(`/trainers/${id}`, {
       method: "PUT",
       body: JSON.stringify(trainer),
@@ -165,6 +234,7 @@ class ApiService {
   }
 
   async deleteTrainer(id) {
+    await this.ensureCsrfToken()
     return this.request(`/trainers/${id}`, {
       method: "DELETE",
     })
@@ -182,14 +252,17 @@ class ApiService {
 
   // Member endpoints
   async getAllMembers() {
+    await this.ensureCsrfToken()
     return this.request("/members")
   }
 
   async getMemberById(id) {
+    await this.ensureCsrfToken()
     return this.request(`/members/${id}`)
   }
 
   async createMember(member) {
+    await this.ensureCsrfToken()
     return this.request("/members", {
       method: "POST",
       body: JSON.stringify(member),
@@ -197,6 +270,7 @@ class ApiService {
   }
 
   async updateMember(id, member) {
+    await this.ensureCsrfToken()
     return this.request(`/members/${id}`, {
       method: "PUT",
       body: JSON.stringify(member),
@@ -204,16 +278,19 @@ class ApiService {
   }
 
   async deleteMember(id) {
+    await this.ensureCsrfToken()
     return this.request(`/members/${id}`, {
       method: "DELETE",
     })
   }
 
   async getMembersByTrainerId(trainerId) {
+    await this.ensureCsrfToken()
     return this.request(`/members/by-trainer/${trainerId}`)
   }
 
   async getMyProfile() {
+    await this.ensureCsrfToken()
     return this.request("/members/me")
   }
 

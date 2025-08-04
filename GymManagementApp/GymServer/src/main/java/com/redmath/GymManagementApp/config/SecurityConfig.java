@@ -46,9 +46,7 @@ public class SecurityConfig {
                 .formLogin(config -> config.successHandler(formLoginSuccessHandler(jwtEncoder)))
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2SuccessHandler(jwtEncoder, passwordEncoder))
-                )
-                .csrf(csrf -> csrf.disable())
-                .headers(headers -> headers.frameOptions().sameOrigin()) // for H2 console
+                ).headers(headers -> headers.frameOptions().sameOrigin()) // for H2 console
                 .oauth2ResourceServer(config -> config.jwt(jwtConfig -> jwtConfig.jwtAuthenticationConverter(jwt -> {
                     String role = jwt.getClaimAsString("role");
                     if (role == null || role.isBlank()) {

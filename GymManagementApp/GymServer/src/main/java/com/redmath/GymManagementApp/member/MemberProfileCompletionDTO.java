@@ -1,15 +1,7 @@
 package com.redmath.GymManagementApp.member;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
-@Getter
-@Setter
 public class MemberProfileCompletionDTO {
     private String phoneNumber;
-    private Long trainerId;
+    private Long trainerid;
     private String gender;
 
     public String getPhoneNumber() {
@@ -26,5 +18,14 @@ public class MemberProfileCompletionDTO {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public Long getTrainerid() {
+        return trainerid;
+    }
+
+
+    public void setTrainerid(Long trainerid) {
+        this.trainerid = trainerid;
     }
 }
