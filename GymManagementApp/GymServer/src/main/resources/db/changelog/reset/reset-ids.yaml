@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: reset-member-id
+      author: haider
+      changes:
+        - sql:
+            sql: ALTER TABLE member ALTER COLUMN id RESTART WITH 1;
+
+  - changeSet:
+      id: reset-trainer-id
+      author: haider
+      changes:
+        - sql:
+            sql: ALTER TABLE trainer ALTER COLUMN id RESTART WITH 1;
+
+  - changeSet:
+      id: reset-admin-id
+      author: haider
+      changes:
+        - sql:
+            sql: ALTER TABLE admin ALTER COLUMN id RESTART WITH 1;

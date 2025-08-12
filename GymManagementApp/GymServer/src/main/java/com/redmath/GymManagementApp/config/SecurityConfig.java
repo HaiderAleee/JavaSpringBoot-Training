@@ -41,12 +41,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtEncoder jwtEncoder, PasswordEncoder passwordEncoder) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
-
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"));
         http
                 .formLogin(config -> config.successHandler(formLoginSuccessHandler(jwtEncoder)))
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2SuccessHandler(jwtEncoder, passwordEncoder))
-                ).headers(headers -> headers.frameOptions().sameOrigin()) // for H2 console
+                ).headers(headers -> headers.frameOptions().sameOrigin())
                 .oauth2ResourceServer(config -> config.jwt(jwtConfig -> jwtConfig.jwtAuthenticationConverter(jwt -> {
                     String role = jwt.getClaimAsString("role");
                     if (role == null || role.isBlank()) {

@@ -11,3 +11,5 @@ databaseChangeLog:
       file: db/changelog/trainer/trainer-ddl.yaml
   - include:
       file: db/changelog/trainer/trainer-dml.yaml
+  - include:
+      file: db/changelog/reset/reset-ids.yaml
