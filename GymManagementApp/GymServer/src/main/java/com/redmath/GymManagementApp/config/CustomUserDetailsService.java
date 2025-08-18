@@ -1,3 +1,4 @@
+
 package com.redmath.GymManagementApp.config;
 
 import com.redmath.GymManagementApp.admin.AdminRepository;

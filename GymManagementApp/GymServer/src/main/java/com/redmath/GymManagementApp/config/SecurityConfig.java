@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -32,7 +33,7 @@ import java.util.Map;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final MemberRepository memberRepository;
+    private final MemberRepository memberRepository; //constructor injection
 
     public SecurityConfig(MemberRepository memberRepository) {
         this.memberRepository = memberRepository;
@@ -40,13 +41,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtEncoder jwtEncoder, PasswordEncoder passwordEncoder) throws Exception {
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
-        http.csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"));
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**")); //ignoring csrf on h2-cosole
         http
                 .formLogin(config -> config.successHandler(formLoginSuccessHandler(jwtEncoder)))
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2SuccessHandler(jwtEncoder, passwordEncoder))
-                ).headers(headers -> headers.frameOptions().sameOrigin())
+                .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2SuccessHandler(jwtEncoder, passwordEncoder))
+                ).headers(headers -> headers
+                .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
                 .oauth2ResourceServer(config -> config.jwt(jwtConfig -> jwtConfig.jwtAuthenticationConverter(jwt -> {
                     String role = jwt.getClaimAsString("role");
                     if (role == null || role.isBlank()) {
@@ -124,7 +124,7 @@ public class SecurityConfig {
             Map<String, Object> attributes = oauth2User.getAttributes();
 
             String email = (String) attributes.get("email");
-            String gender = (String) attributes.get("gender"); // optional
+            String gender = (String) attributes.get("gender");
 
             boolean isNewUser = !memberRepository.existsByUsername(email);
 
@@ -154,20 +154,6 @@ public class SecurityConfig {
         };
     }
 
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
 
     @Bean
     public JwtEncoder jwtEncoder(@Value("${jwt.signing.key}") byte[] signingKey) {
