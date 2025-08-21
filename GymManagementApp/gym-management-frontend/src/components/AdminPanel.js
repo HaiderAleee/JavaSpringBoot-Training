@@ -249,7 +249,7 @@ const AdminPanel = ({ activeSection, onSectionChange }) => {
   )
 }
 
-// 🧩 Modal component stays unchanged (already works fine)
+// 🧩 Modal component updated
 const Modal = ({ type, item, onClose, onSave }) => {
   const [formData, setFormData] = useState(
     item || {
@@ -271,7 +271,7 @@ const Modal = ({ type, item, onClose, onSave }) => {
         switch (type) {
           case "admin": await apiService.updateAdmin(item.id, formData); break
           case "trainer": await apiService.updateTrainer(item.id, formData); break
-          case "member": await apiService.updateMember(item.id, formData); break
+          case "member": await apiService.updateMemberByAdmin(item.id, formData); break
         }
       } else {
         switch (type) {

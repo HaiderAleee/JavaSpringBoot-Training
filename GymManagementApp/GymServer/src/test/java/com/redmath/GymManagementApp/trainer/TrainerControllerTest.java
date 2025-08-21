@@ -32,7 +32,7 @@ class TrainerControllerTest {
     @WithMockUser(roles = {"MEMBER"})
     void testGetAllTrainers_AsMember() throws Exception {
         when(trainerService.getAllTrainers()).thenReturn(List.of(new Trainer()));
-        mockMvc.perform(get("/trainers"))
+        mockMvc.perform(get("/api/trainers"))
                 .andExpect(status().isOk());
     }
 
@@ -40,7 +40,7 @@ class TrainerControllerTest {
     @WithMockUser(roles = {"TRAINER"})
     void testGetAllTrainers_AsTrainer() throws Exception {
         when(trainerService.getAllTrainers()).thenReturn(List.of(new Trainer()));
-        mockMvc.perform(get("/trainers"))
+        mockMvc.perform(get("/api/trainers"))
                 .andExpect(status().isOk());
     }
 
@@ -48,7 +48,7 @@ class TrainerControllerTest {
     @WithMockUser(roles = {"ADMIN"})
     void testGetAllTrainers_AsAdmin() throws Exception {
         when(trainerService.getAllTrainers()).thenReturn(List.of(new Trainer()));
-        mockMvc.perform(get("/trainers"))
+        mockMvc.perform(get("/api/trainers"))
                 .andExpect(status().isOk());
     }
 
@@ -58,7 +58,7 @@ class TrainerControllerTest {
         Trainer trainer = new Trainer();
         trainer.setId(1L);
         when(trainerService.getTrainerById(1L)).thenReturn(Optional.of(trainer));
-        mockMvc.perform(get("/trainers/1"))
+        mockMvc.perform(get("/api/trainers/1"))
                 .andExpect(status().isOk());
     }
 
@@ -68,7 +68,7 @@ class TrainerControllerTest {
         Trainer trainer = new Trainer();
         trainer.setId(1L);
         when(trainerService.getTrainerById(1L)).thenReturn(Optional.of(trainer));
-        mockMvc.perform(get("/trainers/1"))
+        mockMvc.perform(get("/api/trainers/1"))
                 .andExpect(status().isOk());
     }
 
@@ -76,7 +76,7 @@ class TrainerControllerTest {
     @WithMockUser(roles = {"TRAINER"})
     void testGetTrainerById_AsTrainer_NotFound() throws Exception {
         when(trainerService.getTrainerById(1L)).thenReturn(Optional.empty());
-        mockMvc.perform(get("/trainers/1"))
+        mockMvc.perform(get("/api/trainers/1"))
                 .andExpect(status().isNotFound());
     }
 
@@ -84,7 +84,7 @@ class TrainerControllerTest {
     @WithMockUser(roles = {"ADMIN"})
     void testGetTrainerById_AsAdmin_NotFound() throws Exception {
         when(trainerService.getTrainerById(1L)).thenReturn(Optional.empty());
-        mockMvc.perform(get("/trainers/1"))
+        mockMvc.perform(get("/api/trainers/1"))
                 .andExpect(status().isNotFound());
     }
 
@@ -94,7 +94,7 @@ class TrainerControllerTest {
         Trainer trainer = new Trainer();
         trainer.setUsername("trainer1");
         when(trainerService.createTrainer(any(Trainer.class))).thenReturn(trainer);
-        mockMvc.perform(post("/trainers")
+        mockMvc.perform(post("/api/trainers")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(trainer)))
@@ -107,7 +107,7 @@ class TrainerControllerTest {
         Trainer trainer = new Trainer();
         trainer.setId(1L);
         when(trainerService.updateTrainer(eq(1L), any(Trainer.class))).thenReturn(trainer);
-        mockMvc.perform(put("/trainers/1")
+        mockMvc.perform(put("/api/trainers/1")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(trainer)))
@@ -118,7 +118,7 @@ class TrainerControllerTest {
     @WithMockUser(roles = {"ADMIN"})
     void testDeleteTrainer_AsAdmin() throws Exception {
         doNothing().when(trainerService).deleteTrainer(1L);
-        mockMvc.perform(delete("/trainers/1")
+        mockMvc.perform(delete("/api/trainers/1")
                         .with(csrf()))
                 .andExpect(status().isOk());
     }

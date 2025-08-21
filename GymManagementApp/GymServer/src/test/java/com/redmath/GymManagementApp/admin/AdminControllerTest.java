@@ -33,7 +33,7 @@ public class AdminControllerTest {
         Admin admin = new Admin();
         admin.setUsername("admin1");
         when(adminService.createAdmin(any(Admin.class))).thenReturn(admin);
-        mockMvc.perform(post("/admins")
+        mockMvc.perform(post("/api/admins")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(admin)))
@@ -46,7 +46,7 @@ public class AdminControllerTest {
         Admin admin = new Admin();
         admin.setId(1L);
         when(adminService.updateAdmin(eq(1L), any(Admin.class))).thenReturn(admin);
-        mockMvc.perform(put("/admins/1")
+        mockMvc.perform(put("/api/admins/1")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(admin)))
@@ -57,7 +57,7 @@ public class AdminControllerTest {
     @WithMockUser(roles = "ADMIN")
     void testDeleteAdmin() throws Exception {
         doNothing().when(adminService).deleteAdmin(1L);
-        mockMvc.perform(delete("/admins/1")
+        mockMvc.perform(delete("/api/admins/1")
                         .with(csrf()))
                 .andExpect(status().isOk());
     }
@@ -66,7 +66,7 @@ public class AdminControllerTest {
     @WithMockUser(roles = "ADMIN")
     void testGetAllAdmins() throws Exception {
         when(adminService.getAllAdmins()).thenReturn(List.of(new Admin()));
-        mockMvc.perform(get("/admins"))
+        mockMvc.perform(get("/api/admins"))
                 .andExpect(status().isOk());
     }
 
@@ -76,7 +76,7 @@ public class AdminControllerTest {
         Admin admin = new Admin();
         admin.setId(1L);
         when(adminService.getAdminById(1L)).thenReturn(Optional.of(admin));
-        mockMvc.perform(get("/admins/1"))
+        mockMvc.perform(get("/api/admins/1"))
                 .andExpect(status().isOk());
     }
 

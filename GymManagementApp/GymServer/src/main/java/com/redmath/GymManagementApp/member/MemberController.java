@@ -11,8 +11,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
 import java.util.List;
+
+
 @RestController
-@RequestMapping("/members")
+@RequestMapping("/api/members")
 public class MemberController {
 
     private final MemberService memberService;
@@ -40,8 +42,8 @@ public class MemberController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Member> updateMember(@PathVariable Long id, @RequestBody @Valid Member member) {
-        return ResponseEntity.ok(memberService.updateMember(id, member));
+    public ResponseEntity<Member> updateMember(@PathVariable Long id, @RequestBody @Valid MemberProfileCompletionDTO dto) {
+        return ResponseEntity.ok(memberService.updateMember(id, dto));
     }
 
     @DeleteMapping("/{id}")
@@ -62,22 +64,19 @@ public class MemberController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/complete-profile")
-    public ResponseEntity<Member> completeProfile(
-            @RequestBody @Valid MemberProfileCompletionDTO profileData,
+    @PutMapping("/me")
+    public ResponseEntity<Member> updateMyProfile(
+            @RequestBody @Valid MemberProfileCompletionDTO dto,
             @AuthenticationPrincipal Jwt jwt) {
 
         Member member = memberService.getMemberByUsername(jwt.getSubject())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        if (profileData.getTrainerid() != null && !memberService.trainerExists(profileData.getTrainerid())) {
+        if (dto.getTrainerid() != null &&
+                !memberService.trainerExists(dto.getTrainerid())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid trainer ID");
         }
 
-        member.setPhoneNumber(profileData.getPhoneNumber());
-        member.setTrainerid(profileData.getTrainerid());
-        member.setGender(profileData.getGender());
-
-        return ResponseEntity.ok(memberService.updateMember(member.getId(), member));
+        return ResponseEntity.ok(memberService.updateMember(member.getId(), dto));
     }
 }

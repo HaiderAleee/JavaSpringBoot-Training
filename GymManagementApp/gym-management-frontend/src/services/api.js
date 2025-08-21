@@ -1,5 +1,3 @@
-const API_BASE_URL = ""
-
 class ApiService {
   constructor() {
     this.token = localStorage.getItem("token")
@@ -16,31 +14,30 @@ class ApiService {
     localStorage.removeItem("token")
   }
 
-  // Get CSRF token from login page HTML
+  // Get CSRF token
   async getCsrfTokenFromLoginPage() {
     try {
-      const response = await fetch(`${API_BASE_URL}/login`, {
+      const response = await fetch(`login`, {
         method: "GET",
         credentials: "include",
       })
 
       if (response.ok) {
         const html = await response.text()
-        
-        // Extract CSRF token from meta tag
-        const metaMatch = html.match(/<meta name="_csrf" content="([^"]+)"/);
+
+        const metaMatch = html.match(/<meta name="_csrf" content="([^"]+)"/)
         if (metaMatch) {
           this.csrfToken = metaMatch[1]
           return metaMatch[1]
         }
 
-        const inputMatch = html.match(/<input[^>]*name="_csrf"[^>]*value="([^"]+)"/);
+        const inputMatch = html.match(/<input[^>]*name="_csrf"[^>]*value="([^"]+)"/)
         if (inputMatch) {
           this.csrfToken = inputMatch[1]
           return inputMatch[1]
         }
 
-        const jsMatch = html.match(/var csrfToken = "([^"]+)"/);
+        const jsMatch = html.match(/var csrfToken = "([^"]+)"/)
         if (jsMatch) {
           this.csrfToken = jsMatch[1]
           return jsMatch[1]
@@ -55,9 +52,7 @@ class ApiService {
   }
 
   getHeaders() {
-    const headers = {
-      "Content-Type": "application/json",
-    }
+    const headers = { "Content-Type": "application/json" }
 
     if (this.token) {
       headers.Authorization = `Bearer ${this.token}`
@@ -71,15 +66,14 @@ class ApiService {
   }
 
   async request(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`
     const config = {
       headers: this.getHeaders(),
-      credentials: "include", 
+      credentials: "include",
       ...options,
     }
 
     try {
-      const response = await fetch(url, config)
+      const response = await fetch(endpoint, config)
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -115,11 +109,11 @@ class ApiService {
       headers["X-XSRF-TOKEN"] = this.csrfToken
     }
 
-    const response = await fetch(`${API_BASE_URL}/login`, {
+    const response = await fetch(`login`, {
       method: "POST",
       body: formData,
       credentials: "include",
-      headers: headers,
+      headers,
     })
 
     if (!response.ok) {
@@ -132,7 +126,7 @@ class ApiService {
   }
 
   async googleLogin() {
-    window.location.href = `${API_BASE_URL}/oauth2/authorization/google`
+    window.location.href = `oauth2/authorization/google`
   }
 
   async completeProfile(profileData) {
@@ -141,7 +135,7 @@ class ApiService {
         await this.getCsrfTokenFromLoginPage()
       }
 
-      return await this.request("/members/complete-profile", {
+      return await this.request("api/members/complete-profile", {
         method: "POST",
         body: JSON.stringify(profileData),
       })
@@ -158,7 +152,7 @@ class ApiService {
           trainerid: profileData.trainerId || profileData.trainerid || 0,
         }
 
-        return await this.updateMember(currentProfile.id, updateData)
+        return await this.updateMyProfile(updateData)
       } catch (fallbackError) {
         console.error("Fallback profile update failed:", fallbackError)
         throw fallbackError
@@ -172,20 +166,22 @@ class ApiService {
     }
   }
 
+  // --------------------
   // Admin endpoints
+  // --------------------
   async getAllAdmins() {
     await this.ensureCsrfToken()
-    return this.request("/admins")
+    return this.request("api/admins")
   }
 
   async getAdminById(id) {
     await this.ensureCsrfToken()
-    return this.request(`/admins/${id}`)
+    return this.request(`api/admins/${id}`)
   }
 
   async createAdmin(admin) {
     await this.ensureCsrfToken()
-    return this.request("/admins", {
+    return this.request("api/admins", {
       method: "POST",
       body: JSON.stringify(admin),
     })
@@ -193,7 +189,7 @@ class ApiService {
 
   async updateAdmin(id, admin) {
     await this.ensureCsrfToken()
-    return this.request(`/admins/${id}`, {
+    return this.request(`api/admins/${id}`, {
       method: "PUT",
       body: JSON.stringify(admin),
     })
@@ -201,25 +197,27 @@ class ApiService {
 
   async deleteAdmin(id) {
     await this.ensureCsrfToken()
-    return this.request(`/admins/${id}`, {
+    return this.request(`api/admins/${id}`, {
       method: "DELETE",
     })
   }
 
+  // --------------------
   // Trainer endpoints
+  // --------------------
   async getAllTrainers() {
     await this.ensureCsrfToken()
-    return this.request("/trainers")
+    return this.request("api/trainers")
   }
 
   async getTrainerById(id) {
     await this.ensureCsrfToken()
-    return this.request(`/trainers/${id}`)
+    return this.request(`api/trainers/${id}`)
   }
 
   async createTrainer(trainer) {
     await this.ensureCsrfToken()
-    return this.request("/trainers", {
+    return this.request("api/trainers", {
       method: "POST",
       body: JSON.stringify(trainer),
     })
@@ -227,7 +225,7 @@ class ApiService {
 
   async updateTrainer(id, trainer) {
     await this.ensureCsrfToken()
-    return this.request(`/trainers/${id}`, {
+    return this.request(`api/trainers/${id}`, {
       method: "PUT",
       body: JSON.stringify(trainer),
     })
@@ -235,43 +233,54 @@ class ApiService {
 
   async deleteTrainer(id) {
     await this.ensureCsrfToken()
-    return this.request(`/trainers/${id}`, {
+    return this.request(`api/trainers/${id}`, {
       method: "DELETE",
     })
   }
 
-  // Check if trainer exists
   async trainerExists(trainerId) {
     try {
       await this.getTrainerById(trainerId)
       return true
-    } catch (error) {
+    } catch {
       return false
     }
   }
 
+  // --------------------
   // Member endpoints
+  // --------------------
   async getAllMembers() {
     await this.ensureCsrfToken()
-    return this.request("/members")
+    return this.request("api/members")
   }
 
   async getMemberById(id) {
     await this.ensureCsrfToken()
-    return this.request(`/members/${id}`)
+    return this.request(`api/members/${id}`)
   }
 
   async createMember(member) {
     await this.ensureCsrfToken()
-    return this.request("/members", {
+    return this.request("api/members", {
       method: "POST",
       body: JSON.stringify(member),
     })
   }
 
-  async updateMember(id, member) {
+  // Member updating own profile
+  async updateMyProfile(member) {
     await this.ensureCsrfToken()
-    return this.request(`/members/${id}`, {
+    return this.request(`api/members/me`, {
+      method: "PUT",
+      body: JSON.stringify(member),
+    })
+  }
+
+  // Admin updating member by id
+  async updateMemberByAdmin(id, member) {
+    await this.ensureCsrfToken()
+    return this.request(`api/members/${id}`, {
       method: "PUT",
       body: JSON.stringify(member),
     })
@@ -279,24 +288,25 @@ class ApiService {
 
   async deleteMember(id) {
     await this.ensureCsrfToken()
-    return this.request(`/members/${id}`, {
+    return this.request(`api/members/${id}`, {
       method: "DELETE",
     })
   }
 
   async getMembersByTrainerId(trainerId) {
     await this.ensureCsrfToken()
-    return this.request(`/members/by-trainer/${trainerId}`)
+    return this.request(`api/members/by-trainer/${trainerId}`)
   }
 
   async getMyProfile() {
     await this.ensureCsrfToken()
-    return this.request("/members/me")
+    return this.request("api/members/me")
   }
 
-  // Get current user profile (works for any role)
+  // --------------------
+  // Current user profile
+  // --------------------
   async getCurrentUserProfile() {
-    // Try to get profile based on role
     const token = this.token
     if (!token) throw new Error("No token available")
 
@@ -304,19 +314,16 @@ class ApiService {
     const role = payload.role
 
     if (role === "ROLE_MEMBER") {
-      return this.request("/members/me")
+      return this.request("api/members/me")
     } else if (role === "ROLE_TRAINER") {
-      // For trainers, we'll need to find them by username
       const trainers = await this.getAllTrainers()
       return trainers.find((t) => t.username === payload.sub)
     } else if (role === "ROLE_ADMIN") {
-      // For admins, we'll need to find them by username
       const admins = await this.getAllAdmins()
       return admins.find((a) => a.username === payload.sub)
     }
   }
 
-  // Update current user profile
   async updateCurrentUserProfile(profileData) {
     const token = this.token
     if (!token) throw new Error("No token available")
@@ -325,8 +332,7 @@ class ApiService {
     const role = payload.role
 
     if (role === "ROLE_MEMBER") {
-      const profile = await this.getMyProfile()
-      return this.updateMember(profile.id, profileData)
+      return this.updateMyProfile(profileData)
     } else if (role === "ROLE_TRAINER") {
       const trainers = await this.getAllTrainers()
       const trainer = trainers.find((t) => t.username === payload.sub)

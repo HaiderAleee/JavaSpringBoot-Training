@@ -1,4 +1,5 @@
 package com.redmath.GymManagementApp.member;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -44,6 +45,13 @@ class MemberServiceTest {
     }
 
     @Test
+    void testGetMemberById_NotFound() {
+        when(memberRepo.findById(99L)).thenReturn(Optional.empty());
+        Optional<Member> result = memberService.getMemberById(99L);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
     void testCreateMember() {
         Member member = new Member();
         member.setPassword("raw");
@@ -55,29 +63,92 @@ class MemberServiceTest {
     }
 
     @Test
-    void testUpdateMember_WithPassword() {
-        Member updated = new Member();
-        updated.setPassword("newpass");
-        when(passwordEncoder.encode("newpass")).thenReturn("encoded");
-        when(memberRepo.save(any(Member.class))).thenReturn(updated);
-        Member result = memberService.updateMember(1L, updated);
-        assertEquals("MEMBER", result.getRole());
-        assertEquals("encoded", result.getPassword());
+    void testUpdateMember_WithProfileCompletion() {
+        Member existing = new Member();
+        existing.setId(1L);
+        existing.setRole("OLD_ROLE");
+
+        when(memberRepo.findById(1L)).thenReturn(Optional.of(existing));
+        when(memberRepo.save(any(Member.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        MemberProfileCompletionDTO dto = new MemberProfileCompletionDTO();
+        dto.setPhoneNumber("1234567890");
+        dto.setTrainerid(42L);
+        dto.setGender("Male");
+
+        Member result = memberService.updateMember(1L, dto);
+
         assertEquals(1L, result.getId());
+        assertEquals("1234567890", result.getPhoneNumber());
+        assertEquals(42L, result.getTrainerid());
+        assertEquals("Male", result.getGender());
+        assertEquals("MEMBER", result.getRole());
+
+        verify(memberRepo).findById(1L);
+        verify(memberRepo).save(existing);
     }
 
     @Test
-    void testUpdateMember_WithoutPassword() {
-        Member updated = new Member();
-        updated.setPassword("");
+    void testUpdateMember_WithoutProfileFields() {
         Member existing = new Member();
-        existing.setPassword("oldpass");
+        existing.setId(1L);
+        existing.setPhoneNumber("oldPhone");
+        existing.setTrainerid(99L);
+        existing.setGender("Female");
+        existing.setRole("OLD_ROLE");
+
         when(memberRepo.findById(1L)).thenReturn(Optional.of(existing));
-        when(memberRepo.save(any(Member.class))).thenReturn(updated);
-        Member result = memberService.updateMember(1L, updated);
-        assertEquals("MEMBER", result.getRole());
-        assertEquals("oldpass", result.getPassword());
+        when(memberRepo.save(any(Member.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        MemberProfileCompletionDTO dto = new MemberProfileCompletionDTO();
+
+        Member result = memberService.updateMember(1L, dto);
+
         assertEquals(1L, result.getId());
+        assertEquals("oldPhone", result.getPhoneNumber());
+        assertEquals(99L, result.getTrainerid());
+        assertEquals("Female", result.getGender());
+        assertEquals("MEMBER", result.getRole());
+
+        verify(memberRepo).findById(1L);
+        verify(memberRepo).save(existing);
+    }
+
+    @Test
+    void testUpdateMember_NotFound() {
+        when(memberRepo.findById(777L)).thenReturn(Optional.empty());
+        MemberProfileCompletionDTO dto = new MemberProfileCompletionDTO();
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> memberService.updateMember(777L, dto));
+        assertEquals("Member not found", ex.getMessage());
+        verify(memberRepo).findById(777L);
+        verify(memberRepo, never()).save(any());
+    }
+
+    @Test
+    void testUpdatePassword_Success() {
+        Member member = new Member();
+        member.setId(1L);
+        member.setPassword("old");
+        when(memberRepo.findById(1L)).thenReturn(Optional.of(member));
+        when(passwordEncoder.encode("newpass")).thenReturn("encodedNew");
+        when(memberRepo.save(any(Member.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        memberService.updatePassword(1L, "newpass");
+
+        assertEquals("encodedNew", member.getPassword());
+        verify(memberRepo).findById(1L);
+        verify(passwordEncoder).encode("newpass");
+        verify(memberRepo).save(member);
+    }
+
+    @Test
+    void testUpdatePassword_NotFound() {
+        when(memberRepo.findById(123L)).thenReturn(Optional.empty());
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> memberService.updatePassword(123L, "x"));
+        assertEquals("Member not found", ex.getMessage());
+        verify(memberRepo).findById(123L);
+        verify(memberRepo, never()).save(any());
+        verify(passwordEncoder, never()).encode(anyString());
     }
 
     @Test

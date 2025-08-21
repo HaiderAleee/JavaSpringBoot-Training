@@ -43,10 +43,12 @@ const MemberDashboard = ({ activeSection, onSectionChange }) => {
     }
   }
 
+  // ✅ Fixed: only pass one object argument
   const handleUpdateProfile = async (profileData) => {
     try {
-      await apiService.updateMember(profile.id, profileData)
-      setProfile({ ...profile, ...profileData })
+      const updated = { ...profile, ...profileData } // merge old + new
+      await apiService.updateMyProfile(updated)
+      setProfile(updated)
       setShowProfileModal(false)
     } catch (error) {
       console.error("Error updating profile:", error)
@@ -159,7 +161,9 @@ const MemberDashboard = ({ activeSection, onSectionChange }) => {
               <p>
                 <strong>ID:</strong> {trainer.id}
               </p>
-              {profile?.trainerid === trainer.id && <div className="current-trainer-badge">Your Current Trainer</div>}
+              {profile?.trainerid === trainer.id && (
+                <div className="current-trainer-badge">Your Current Trainer</div>
+              )}
             </div>
           </div>
         ))}
@@ -183,7 +187,11 @@ const MemberDashboard = ({ activeSection, onSectionChange }) => {
       )}
 
       {showProfileModal && (
-        <ProfileEditModal member={profile} onClose={() => setShowProfileModal(false)} onSave={handleUpdateProfile} />
+        <ProfileEditModal
+          member={profile}
+          onClose={() => setShowProfileModal(false)}
+          onSave={handleUpdateProfile}
+        />
       )}
     </div>
   )

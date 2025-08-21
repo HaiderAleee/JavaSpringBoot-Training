@@ -19,13 +19,9 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -33,88 +29,82 @@ import java.util.Map;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final MemberRepository memberRepository; //constructor injection
+    private static final String MEMBER = "MEMBER";
+    private static final String TRAINER = "TRAINER";
+    private static final String ADMIN = "ADMIN";
+
+    private final MemberRepository memberRepository;
+
+    @Value("${jwt.expires-seconds}")
+    private long expirySeconds;
+    @Value("${app.frontend.base-url}")
+    private String frontendBaseUrl;
+    @Value("${app.oauth.default-password}")
+    private String defaultPassword;
+
+
 
     public SecurityConfig(MemberRepository memberRepository) {
         this.memberRepository = memberRepository;
     }
 
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtEncoder jwtEncoder, PasswordEncoder passwordEncoder) throws Exception {
-        http.csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**")); //ignoring csrf on h2-cosole
+        http.csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"));
         http
-                .formLogin(config -> config.successHandler(formLoginSuccessHandler(jwtEncoder)))
-                .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2SuccessHandler(jwtEncoder, passwordEncoder))
-                ).headers(headers -> headers
-                .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
-                .oauth2ResourceServer(config -> config.jwt(jwtConfig -> jwtConfig.jwtAuthenticationConverter(jwt -> {
+                .formLogin(cfg -> cfg.successHandler(formLoginSuccessHandler(jwtEncoder)))
+                .oauth2Login(cfg -> cfg.successHandler(oAuth2SuccessHandler(jwtEncoder, passwordEncoder)))
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
+                .oauth2ResourceServer(cfg -> cfg.jwt(j -> j.jwtAuthenticationConverter(jwt -> {
                     String role = jwt.getClaimAsString("role");
-                    if (role == null || role.isBlank()) {
-                        throw new IllegalArgumentException("Role missing in JWT");
-                    }
+                    if (role == null || role.isBlank()) throw new IllegalArgumentException("Role missing in JWT");
                     return new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority(role)));
                 })))
-                .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(cfg -> cfg.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-
-                        // Public routes
                         .requestMatchers("/error", "/swagger-ui/**", "/v3/api-docs/**", "/login", "/actuator/**", "/oauth2/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/news/**").permitAll()
 
-                        // GET Access
-                        .requestMatchers(HttpMethod.GET, "/trainers").hasAnyRole("MEMBER", "TRAINER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/members/me").hasAnyRole("MEMBER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/trainers/{id}").hasAnyRole("TRAINER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/members").hasAnyRole("TRAINER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/members/by-trainer/**").hasAnyRole("TRAINER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/trainers").hasAnyRole(MEMBER, TRAINER, ADMIN)
+                        .requestMatchers(HttpMethod.GET, "/api/members/me").hasAnyRole(MEMBER, ADMIN)
+                        .requestMatchers(HttpMethod.GET, "/api/trainers/{id}").hasAnyRole(TRAINER, ADMIN)
+                        .requestMatchers(HttpMethod.GET, "/api/members").hasAnyRole(TRAINER, ADMIN)
+                        .requestMatchers(HttpMethod.GET, "/api/members/by-trainer/**").hasAnyRole(TRAINER, ADMIN)
 
-                        // PUT Access
-                        .requestMatchers(HttpMethod.PUT, "/members/me").hasAnyRole("MEMBER", "ADMIN") // Members edit themselves
-                        .requestMatchers(HttpMethod.PUT, "/members/**").hasAnyRole("MEMBER", "ADMIN") // Members edit themselves
-                        .requestMatchers(HttpMethod.PUT, "/members/**").hasAnyRole("TRAINER", "ADMIN") // Trainers/Admin edit any member
-                        .requestMatchers(HttpMethod.PUT, "/trainers/**").hasRole("ADMIN") // Only admin edits trainers
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/news/**").hasRole("ADMIN") // Only admin edits news
+                        .requestMatchers(HttpMethod.PUT, "/api/members/me").hasAnyRole(MEMBER, ADMIN)
+                        .requestMatchers(HttpMethod.PUT, "/api/members/**").hasAnyRole(TRAINER, ADMIN)
+                        .requestMatchers(HttpMethod.PUT, "/api/trainers/**").hasRole(ADMIN)
 
-                        // POST Access
-                        .requestMatchers(HttpMethod.POST, "/members/**").hasAnyRole("TRAINER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/trainers/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/news/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/members/**").hasAnyRole(TRAINER, ADMIN)
+                        .requestMatchers(HttpMethod.POST, "/api/trainers/**").hasRole(ADMIN)
 
-                        // DELETE Access
-                        .requestMatchers(HttpMethod.DELETE, "/members/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/trainers/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/news/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/members/**").hasRole(ADMIN)
+                        .requestMatchers(HttpMethod.DELETE, "/api/trainers/**").hasRole(ADMIN)
 
-                        // Fallback
-                        .requestMatchers("/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
+                        .anyRequest().hasRole(ADMIN)
                 );
-
         return http.build();
     }
 
+    private String issueJwt(JwtEncoder encoder, String subject, String prefixedRole, Map<String, Object> extraClaims) {
+        var header = JwsHeader.with(MacAlgorithm.HS256).build();
+        var builder = JwtClaimsSet.builder()
+                .subject(subject)
+                .claim("role", prefixedRole)
+                .expiresAt(Instant.now().plusSeconds(expirySeconds));
+        if (extraClaims != null && !extraClaims.isEmpty()) extraClaims.forEach(builder::claim);
+        return encoder.encode(JwtEncoderParameters.from(header, builder.build())).getTokenValue();
+    }
 
     private AuthenticationSuccessHandler formLoginSuccessHandler(JwtEncoder jwtEncoder) {
         return (request, response, auth) -> {
-            long expirySeconds = 3600;
-            var jwsHeader = JwsHeader.with(MacAlgorithm.HS256).build();
-            var authority = auth.getAuthorities().stream().findFirst()
-                    .orElseThrow(() -> new RuntimeException("No authority found"))
-                    .getAuthority();
-
-            var claims = JwtClaimsSet.builder()
-                    .subject(auth.getName())
-                    .claim("role", authority)
-                    .expiresAt(Instant.now().plusSeconds(expirySeconds))
-                    .build();
-
-            Jwt jwt = jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims));
-            String tokenJson = "{\"token_type\":\"Bearer\",\"access_token\":\"" + jwt.getTokenValue()
-                    + "\",\"expires_in\":" + expirySeconds + "}";
+            String role = auth.getAuthorities().stream().findFirst().orElseThrow().getAuthority();
+            String token = issueJwt(jwtEncoder, auth.getName(), role, Map.of());
+            String body = "{\"token_type\":\"Bearer\",\"access_token\":\"" + token + "\",\"expires_in\":" + expirySeconds + "}";
             response.setContentType("application/json");
-            response.getWriter().print(tokenJson);
+            response.getWriter().print(body);
         };
     }
 
@@ -122,38 +112,25 @@ public class SecurityConfig {
         return (request, response, authentication) -> {
             OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
             Map<String, Object> attributes = oauth2User.getAttributes();
-
             String email = (String) attributes.get("email");
             String gender = (String) attributes.get("gender");
-
             boolean isNewUser = !memberRepository.existsByUsername(email);
 
             if (isNewUser) {
                 Member member = new Member();
                 member.setUsername(email);
-                member.setPassword(passwordEncoder.encode("123456"));
+                member.setPassword(passwordEncoder.encode(defaultPassword));
                 member.setGender(gender != null ? gender : "UNSPECIFIED");
                 member.setJoinDate(LocalDate.now());
-                member.setRole("MEMBER"); // Store clean role
+                member.setRole(MEMBER);
                 memberRepository.save(member);
             }
 
-            long expirySeconds = 3600;
-            var jwsHeader = JwsHeader.with(MacAlgorithm.HS256).build();
-            var claims = JwtClaimsSet.builder()
-                    .subject(email)
-                    .claim("role", "ROLE_MEMBER")
-                    .claim("isNewUser", isNewUser)
-                    .expiresAt(Instant.now().plusSeconds(expirySeconds))
-                    .build();
-
-            Jwt jwt = jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims));
-
-            String redirectUrl = "http://localhost:3000/?token=" + jwt.getTokenValue() + "&isNewUser=" + isNewUser;
+            String token = issueJwt(jwtEncoder, email, "ROLE_" + MEMBER, Map.of("isNewUser", isNewUser));
+            String redirectUrl = frontendBaseUrl + "/?token=" + token + "&isNewUser=" + isNewUser;
             response.sendRedirect(redirectUrl);
         };
     }
-
 
     @Bean
     public JwtEncoder jwtEncoder(@Value("${jwt.signing.key}") byte[] signingKey) {

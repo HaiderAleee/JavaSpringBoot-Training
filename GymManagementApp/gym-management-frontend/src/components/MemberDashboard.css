@@ -54,11 +54,19 @@
   opacity: 0.8;
 }
 
+.stat-info {
+  min-width: 0;
+}
+
 .stat-info h3 {
   font-size: 1.5rem;
   margin: 0;
   font-weight: 800;
   color: #2c3e50;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 100%;
 }
 
 .stat-info p {

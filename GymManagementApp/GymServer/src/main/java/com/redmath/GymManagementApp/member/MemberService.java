@@ -30,26 +30,35 @@ public class MemberService {
         return memberRepo.save(member);
     }
 
-    public Member updateMember(Long id, Member updatedMember) {
-        updatedMember.setId(id);
-        updatedMember.setRole("MEMBER");
+    public Member updateMember(Long id, MemberProfileCompletionDTO dto) {
+        Member existingMember = memberRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Member not found"));
 
-        if (updatedMember.getPassword() != null && !updatedMember.getPassword().isEmpty()) {
-            updatedMember.setPassword(passwordEncoder.encode(updatedMember.getPassword()));
-        } else {
-            Member existingMember = memberRepo.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Member not found"));
-            updatedMember.setPassword(existingMember.getPassword()); // Keep old password
+        if (dto.getPhoneNumber() != null) {
+            existingMember.setPhoneNumber(dto.getPhoneNumber());
         }
+        if (dto.getTrainerid() != null) {
+            existingMember.setTrainerid(dto.getTrainerid());
+        }
+        if (dto.getGender() != null) {
+            existingMember.setGender(dto.getGender());
+        }
+        existingMember.setRole("MEMBER");
 
-        return memberRepo.save(updatedMember);
+        return memberRepo.save(existingMember);
     }
 
+    public void updatePassword(Long id, String rawPassword) {
+        Member member = memberRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Member not found"));
+
+        member.setPassword(passwordEncoder.encode(rawPassword));
+        memberRepo.save(member);
+    }
 
     public List<Member> getMembersByTrainerId(Long trainerId) {
         return memberRepo.findByTrainerid(trainerId);
     }
-
 
     public void deleteMember(Long id) {
         memberRepo.deleteById(id);
