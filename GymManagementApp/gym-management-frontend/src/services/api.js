@@ -1,344 +1,187 @@
 class ApiService {
-  constructor() {
-    this.token = localStorage.getItem("token")
-    this.csrfToken = null
+  constructor(base = "") {
+    this.base = base.replace(/\/+$/, "");
+    this.token = localStorage.getItem("token");
+    this.csrfToken = null;
   }
 
   setToken(token) {
-    this.token = token
-    localStorage.setItem("token", token)
+    this.token = token;
+    localStorage.setItem("token", token);
   }
 
   removeToken() {
-    this.token = null
-    localStorage.removeItem("token")
+    this.token = null;
+    localStorage.removeItem("token");
   }
 
-  // Get CSRF token
   async getCsrfTokenFromLoginPage() {
     try {
-      const response = await fetch(`login`, {
-        method: "GET",
-        credentials: "include",
-      })
-
-      if (response.ok) {
-        const html = await response.text()
-
-        const metaMatch = html.match(/<meta name="_csrf" content="([^"]+)"/)
-        if (metaMatch) {
-          this.csrfToken = metaMatch[1]
-          return metaMatch[1]
+      const res = await fetch(`${this.base}/login`, { method: "GET", credentials: "include", cache: "no-store" });
+      if (!res.ok) return null;
+      const html = await res.text();
+      const patterns = [
+        /<meta name="_csrf" content="([^"]+)"/,
+        /<input[^>]*name="_csrf"[^>]*value="([^"]+)"/,
+        /var csrfToken = "([^"]+)"/
+      ];
+      for (const p of patterns) {
+        const m = html.match(p);
+        if (m) {
+          this.csrfToken = m[1];
+          return m[1];
         }
-
-        const inputMatch = html.match(/<input[^>]*name="_csrf"[^>]*value="([^"]+)"/)
-        if (inputMatch) {
-          this.csrfToken = inputMatch[1]
-          return inputMatch[1]
-        }
-
-        const jsMatch = html.match(/var csrfToken = "([^"]+)"/)
-        if (jsMatch) {
-          this.csrfToken = jsMatch[1]
-          return jsMatch[1]
-        }
-
-        console.warn("CSRF token not found in login page HTML")
       }
-    } catch (error) {
-      console.error("Failed to get CSRF token from login page:", error)
-    }
-    return null
-  }
-
-  getHeaders() {
-    const headers = { "Content-Type": "application/json" }
-
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`
-    }
-
-    if (this.csrfToken) {
-      headers["X-XSRF-TOKEN"] = this.csrfToken
-    }
-
-    return headers
-  }
-
-  async request(endpoint, options = {}) {
-    const config = {
-      headers: this.getHeaders(),
-      credentials: "include",
-      ...options,
-    }
-
-    try {
-      const response = await fetch(endpoint, config)
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error(`API Error: ${response.status} - ${errorText}`)
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const contentType = response.headers.get("content-type")
-      if (contentType && contentType.includes("application/json")) {
-        return await response.json()
-      }
-
-      return response
-    } catch (error) {
-      console.error("API request failed:", error)
-      throw error
-    }
-  }
-
-  async login(username, password) {
-    await this.getCsrfTokenFromLoginPage()
-
-    const formData = new FormData()
-    formData.append("username", username)
-    formData.append("password", password)
-
-    if (this.csrfToken) {
-      formData.append("_csrf", this.csrfToken)
-    }
-
-    const headers = {}
-    if (this.csrfToken) {
-      headers["X-XSRF-TOKEN"] = this.csrfToken
-    }
-
-    const response = await fetch(`login`, {
-      method: "POST",
-      body: formData,
-      credentials: "include",
-      headers,
-    })
-
-    if (!response.ok) {
-      throw new Error("Login failed")
-    }
-
-    const data = await response.json()
-    this.setToken(data.access_token)
-    return data
-  }
-
-  async googleLogin() {
-    window.location.href = `oauth2/authorization/google`
-  }
-
-  async completeProfile(profileData) {
-    try {
-      if (!this.csrfToken) {
-        await this.getCsrfTokenFromLoginPage()
-      }
-
-      return await this.request("api/members/complete-profile", {
-        method: "POST",
-        body: JSON.stringify(profileData),
-      })
-    } catch (error) {
-      console.log("Complete profile endpoint not found, trying to update current user profile...")
-
-      try {
-        const currentProfile = await this.getMyProfile()
-
-        const updateData = {
-          ...currentProfile,
-          phoneNumber: profileData.phoneNumber,
-          gender: profileData.gender,
-          trainerid: profileData.trainerId || profileData.trainerid || 0,
-        }
-
-        return await this.updateMyProfile(updateData)
-      } catch (fallbackError) {
-        console.error("Fallback profile update failed:", fallbackError)
-        throw fallbackError
-      }
+      return null;
+    } catch {
+      return null;
     }
   }
 
   async ensureCsrfToken() {
-    if (!this.csrfToken) {
-      await this.getCsrfTokenFromLoginPage()
+    if (!this.csrfToken) await this.getCsrfTokenFromLoginPage();
+  }
+
+  buildUrl(endpoint) {
+    if (/^https?:\/\//i.test(endpoint)) return endpoint;
+    const e = endpoint.replace(/^\/+/, "");
+    return this.base ? `${this.base}/${e}` : `/${e}`;
+  }
+
+  buildHeaders(extra = {}, hasJsonBody = false) {
+    const h = { ...extra };
+    if (hasJsonBody) h["Content-Type"] = "application/json";
+    if (this.token) h.Authorization = `Bearer ${this.token}`;
+    if (this.csrfToken) h["X-XSRF-TOKEN"] = this.csrfToken;
+    return h;
+  }
+
+  async request(endpoint, options = {}) {
+    const method = (options.method || "GET").toUpperCase();
+    if (method !== "GET") await this.ensureCsrfToken();
+
+    const isStringBody = typeof options.body === "string";
+    const hasJsonBody = isStringBody && options.body.trim().startsWith("{");
+
+    const res = await fetch(this.buildUrl(endpoint), {
+      credentials: "include",
+      ...options,
+      headers: this.buildHeaders(options.headers || {}, hasJsonBody),
+    });
+
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      throw new Error(`HTTP ${res.status}${txt ? `: ${txt}` : ""}`);
     }
+
+    const ct = res.headers.get("content-type") || "";
+    return ct.includes("application/json") ? res.json() : res;
   }
 
-  // --------------------
-  // Admin endpoints
-  // --------------------
-  async getAllAdmins() {
-    await this.ensureCsrfToken()
-    return this.request("api/admins")
-  }
+  async login(username, password) {
+    await this.ensureCsrfToken();
+    const form = new FormData();
+    form.append("username", username);
+    form.append("password", password);
+    if (this.csrfToken) form.append("_csrf", this.csrfToken);
 
-  async getAdminById(id) {
-    await this.ensureCsrfToken()
-    return this.request(`api/admins/${id}`)
-  }
-
-  async createAdmin(admin) {
-    await this.ensureCsrfToken()
-    return this.request("api/admins", {
+    const res = await fetch(this.buildUrl("login"), {
       method: "POST",
-      body: JSON.stringify(admin),
-    })
+      body: form,
+      credentials: "include",
+      headers: this.csrfToken ? { "X-XSRF-TOKEN": this.csrfToken } : {},
+    });
+
+    if (!res.ok) throw new Error("Login failed");
+    const data = await res.json();
+    this.setToken(data.access_token);
+    return data;
   }
 
-  async updateAdmin(id, admin) {
-    await this.ensureCsrfToken()
-    return this.request(`api/admins/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(admin),
-    })
+  googleLogin() {
+    window.location.href = this.buildUrl("oauth2/authorization/google");
   }
 
-  async deleteAdmin(id) {
-    await this.ensureCsrfToken()
-    return this.request(`api/admins/${id}`, {
-      method: "DELETE",
-    })
+  _getAll(endpoint) {
+    return this.request(endpoint);
   }
 
-  // --------------------
-  // Trainer endpoints
-  // --------------------
-  async getAllTrainers() {
-    await this.ensureCsrfToken()
-    return this.request("api/trainers")
+  _getById(endpoint, id) {
+    return this.request(`${endpoint}/${id}`);
   }
 
-  async getTrainerById(id) {
-    await this.ensureCsrfToken()
-    return this.request(`api/trainers/${id}`)
+  _create(endpoint, data) {
+    return this.request(endpoint, { method: "POST", body: JSON.stringify(data), headers: { "Content-Type": "application/json" } });
   }
 
-  async createTrainer(trainer) {
-    await this.ensureCsrfToken()
-    return this.request("api/trainers", {
-      method: "POST",
-      body: JSON.stringify(trainer),
-    })
+  _update(endpoint, id, data) {
+    return this.request(`${endpoint}/${id}`, { method: "PUT", body: JSON.stringify(data), headers: { "Content-Type": "application/json" } });
   }
 
-  async updateTrainer(id, trainer) {
-    await this.ensureCsrfToken()
-    return this.request(`api/trainers/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(trainer),
-    })
+  _delete(endpoint, id) {
+    return this.request(`${endpoint}/${id}`, { method: "DELETE" });
   }
 
-  async deleteTrainer(id) {
-    await this.ensureCsrfToken()
-    return this.request(`api/trainers/${id}`, {
-      method: "DELETE",
-    })
+  getAllAdmins() { return this._getAll("api/admins"); }
+  getAdminById(id) { return this._getById("api/admins", id); }
+  createAdmin(admin) { return this._create("api/admins", admin); }
+  updateAdmin(id, admin) { return this._update("api/admins", id, admin); }
+  deleteAdmin(id) { return this._delete("api/admins", id); }
+
+  getAllTrainers() { return this._getAll("api/trainers"); }
+  getTrainerById(id) { return this._getById("api/trainers", id); }
+  createTrainer(trainer) { return this._create("api/trainers", trainer); }
+  updateTrainer(id, trainer) { return this._update("api/trainers", id, trainer); }
+  deleteTrainer(id) { return this._delete("api/trainers", id); }
+
+  trainerExists(trainerId) {
+    return this.getTrainerById(trainerId).then(() => true).catch(() => false);
   }
 
-  async trainerExists(trainerId) {
-    try {
-      await this.getTrainerById(trainerId)
-      return true
-    } catch {
-      return false
-    }
+  getAllMembers() { return this._getAll("api/members"); }
+  getMemberById(id) { return this._getById("api/members", id); }
+  createMember(member) { return this._create("api/members", member); }
+
+  updateMyProfile(member) {
+    return this.request("api/members/me", { method: "PUT", body: JSON.stringify(member), headers: { "Content-Type": "application/json" } });
   }
 
-  // --------------------
-  // Member endpoints
-  // --------------------
-  async getAllMembers() {
-    await this.ensureCsrfToken()
-    return this.request("api/members")
+  updateMemberByAdmin(id, member) { return this._update("api/members", id, member); }
+  deleteMember(id) { return this._delete("api/members", id); }
+  getMembersByTrainerId(trainerId) { return this._getById("api/members/by-trainer", trainerId); }
+  getMyProfile() { return this._getAll("api/members/me"); }
+
+  getJwtPayload() {
+    if (!this.token) throw new Error("No token available");
+    const [, payload] = this.token.split(".");
+    return JSON.parse(atob(payload));
   }
 
-  async getMemberById(id) {
-    await this.ensureCsrfToken()
-    return this.request(`api/members/${id}`)
-  }
-
-  async createMember(member) {
-    await this.ensureCsrfToken()
-    return this.request("api/members", {
-      method: "POST",
-      body: JSON.stringify(member),
-    })
-  }
-
-  // Member updating own profile
-  async updateMyProfile(member) {
-    await this.ensureCsrfToken()
-    return this.request(`api/members/me`, {
-      method: "PUT",
-      body: JSON.stringify(member),
-    })
-  }
-
-  // Admin updating member by id
-  async updateMemberByAdmin(id, member) {
-    await this.ensureCsrfToken()
-    return this.request(`api/members/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(member),
-    })
-  }
-
-  async deleteMember(id) {
-    await this.ensureCsrfToken()
-    return this.request(`api/members/${id}`, {
-      method: "DELETE",
-    })
-  }
-
-  async getMembersByTrainerId(trainerId) {
-    await this.ensureCsrfToken()
-    return this.request(`api/members/by-trainer/${trainerId}`)
-  }
-
-  async getMyProfile() {
-    await this.ensureCsrfToken()
-    return this.request("api/members/me")
-  }
-
-  // --------------------
-  // Current user profile
-  // --------------------
   async getCurrentUserProfile() {
-    const token = this.token
-    if (!token) throw new Error("No token available")
-
-    const payload = JSON.parse(atob(token.split(".")[1]))
-    const role = payload.role
-
-    if (role === "ROLE_MEMBER") {
-      return this.request("api/members/me")
-    } else if (role === "ROLE_TRAINER") {
-      const trainers = await this.getAllTrainers()
-      return trainers.find((t) => t.username === payload.sub)
-    } else if (role === "ROLE_ADMIN") {
-      const admins = await this.getAllAdmins()
-      return admins.find((a) => a.username === payload.sub)
+    const { role, sub } = this.getJwtPayload();
+    if (role === "ROLE_MEMBER") return this.getMyProfile();
+    if (role === "ROLE_TRAINER") {
+      const trainers = await this.getAllTrainers();
+      return trainers.find(t => t.username === sub) || null;
     }
-  }
+    if (role === "ROLE_ADMIN") {
+      const admins = await this.getAllAdmins();
+      return admins.find(a => a.username === sub) || null;
+    }
+    return null;
+    }
 
   async updateCurrentUserProfile(profileData) {
-    const token = this.token
-    if (!token) throw new Error("No token available")
-
-    const payload = JSON.parse(atob(token.split(".")[1]))
-    const role = payload.role
-
-    if (role === "ROLE_MEMBER") {
-      return this.updateMyProfile(profileData)
-    } else if (role === "ROLE_TRAINER") {
-      const trainers = await this.getAllTrainers()
-      const trainer = trainers.find((t) => t.username === payload.sub)
-      return this.updateTrainer(trainer.id, profileData)
+    const { role, sub } = this.getJwtPayload();
+    if (role === "ROLE_MEMBER") return this.updateMyProfile(profileData);
+    if (role === "ROLE_TRAINER") {
+      const trainers = await this.getAllTrainers();
+      const me = trainers.find(t => t.username === sub);
+      if (!me) throw new Error("Trainer not found");
+      return this.updateTrainer(me.id, profileData);
     }
+    return null;
   }
 }
 
-export default new ApiService()
+export default new ApiService();

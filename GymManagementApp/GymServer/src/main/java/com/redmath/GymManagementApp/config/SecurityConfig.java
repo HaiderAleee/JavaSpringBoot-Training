@@ -19,6 +19,8 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -48,10 +50,13 @@ public class SecurityConfig {
         this.memberRepository = memberRepository;
     }
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtEncoder jwtEncoder, PasswordEncoder passwordEncoder) throws Exception {
-        http.csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"));
+        http.csrf(csrf -> csrf
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .ignoringRequestMatchers("/h2-console/**")
+        );
+
         http
                 .formLogin(cfg -> cfg.successHandler(formLoginSuccessHandler(jwtEncoder)))
                 .oauth2Login(cfg -> cfg.successHandler(oAuth2SuccessHandler(jwtEncoder, passwordEncoder)))

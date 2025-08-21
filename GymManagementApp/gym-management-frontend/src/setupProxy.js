@@ -1,13 +1,23 @@
-const { createProxyMiddleware } = require('http-proxy-middleware');
+// src/setupProxy.js
+const { createProxyMiddleware } = require("http-proxy-middleware");
 
 module.exports = function (app) {
   app.use(
-    ['/api', '/login', '/logout', '/auth/csrf', '/oauth2', '/v3/api-docs', '/swagger-ui'],
+    [
+      "/api",
+      "/login",              
+      "/logout",
+      "/csrf",           
+      "/oauth2",
+      "/oauth2/authorization",
+      "/login/oauth2/code"
+    ],
     createProxyMiddleware({
-      target: 'http://localhost:8080',
+      target: "http://localhost:8080",
       changeOrigin: true,
       xfwd: true,
-      
+      cookieDomainRewrite: "localhost", 
+      logLevel: "silent",
     })
   );
 };
