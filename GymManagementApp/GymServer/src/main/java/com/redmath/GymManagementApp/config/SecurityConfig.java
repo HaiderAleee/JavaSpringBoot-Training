@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
@@ -45,7 +46,6 @@ public class SecurityConfig {
     private String defaultPassword;
 
 
-
     public SecurityConfig(MemberRepository memberRepository) {
         this.memberRepository = memberRepository;
     }
@@ -54,6 +54,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtEncoder jwtEncoder, PasswordEncoder passwordEncoder) throws Exception {
         http.csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                 .ignoringRequestMatchers("/h2-console/**")
         );
 

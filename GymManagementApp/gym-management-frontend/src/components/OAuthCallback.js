@@ -7,8 +7,6 @@ const OAuthCallback = () => {
   const { loading } = useAuth()
 
   useEffect(() => {
-    // The AuthContext will handle the OAuth callback processing
-    // This component just shows a loading state while processing
   }, [])
 
   if (loading) {

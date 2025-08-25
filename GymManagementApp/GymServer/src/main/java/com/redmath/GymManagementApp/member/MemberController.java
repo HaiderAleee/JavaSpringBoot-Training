@@ -1,5 +1,6 @@
 package com.redmath.GymManagementApp.member;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,6 +20,8 @@ public class MemberController {
 
     private final MemberService memberService;
 
+
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Spring-managed bean; safe to inject directly")
     @Autowired
     public MemberController(MemberService memberService) {
         this.memberService = memberService;

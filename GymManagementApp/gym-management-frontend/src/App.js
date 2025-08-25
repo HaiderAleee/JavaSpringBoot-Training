@@ -1,4 +1,3 @@
-"use client"
 import { AuthProvider, useAuth } from "./context/AuthContext"
 import { useState } from "react"
 import Layout from "./components/Layout"

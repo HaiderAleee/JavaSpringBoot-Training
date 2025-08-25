@@ -15,31 +15,23 @@ class ApiService {
     localStorage.removeItem("token");
   }
 
-  async getCsrfTokenFromLoginPage() {
-    try {
-      const res = await fetch(`${this.base}/login`, { method: "GET", credentials: "include", cache: "no-store" });
-      if (!res.ok) return null;
-      const html = await res.text();
-      const patterns = [
-        /<meta name="_csrf" content="([^"]+)"/,
-        /<input[^>]*name="_csrf"[^>]*value="([^"]+)"/,
-        /var csrfToken = "([^"]+)"/
-      ];
-      for (const p of patterns) {
-        const m = html.match(p);
-        if (m) {
-          this.csrfToken = m[1];
-          return m[1];
-        }
-      }
-      return null;
-    } catch {
-      return null;
+  getCsrfTokenFromCookie() {
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
+    if (match) {
+      this.csrfToken = decodeURIComponent(match[1]);
+      console.log("Extracted CSRF token from cookie:", this.csrfToken);
+      return this.csrfToken;
     }
+    console.warn("CSRF token not found in cookie");
+    return null;
   }
 
   async ensureCsrfToken() {
-    if (!this.csrfToken) await this.getCsrfTokenFromLoginPage();
+    // Always trigger a GET /login to refresh the cookie
+    await fetch(this.buildUrl("login"), { method: "GET", credentials: "include", cache: "no-store" });
+    // Wait a tick to ensure the browser updates cookies
+    await new Promise(resolve => setTimeout(resolve, 50));
+    this.getCsrfTokenFromCookie();
   }
 
   buildUrl(endpoint) {
@@ -79,17 +71,18 @@ class ApiService {
   }
 
   async login(username, password) {
-    await this.ensureCsrfToken();
+    await this.ensureCsrfToken(); 
+
     const form = new FormData();
     form.append("username", username);
     form.append("password", password);
-    if (this.csrfToken) form.append("_csrf", this.csrfToken);
+    form.append("_csrf", this.csrfToken);
 
     const res = await fetch(this.buildUrl("login"), {
       method: "POST",
       body: form,
       credentials: "include",
-      headers: this.csrfToken ? { "X-XSRF-TOKEN": this.csrfToken } : {},
+      headers: { "X-XSRF-TOKEN": this.csrfToken },
     });
 
     if (!res.ok) throw new Error("Login failed");
@@ -169,7 +162,7 @@ class ApiService {
       return admins.find(a => a.username === sub) || null;
     }
     return null;
-    }
+  }
 
   async updateCurrentUserProfile(profileData) {
     const { role, sub } = this.getJwtPayload();
